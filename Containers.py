@@ -1,4 +1,5 @@
 import random
+from collections import deque
 
 CARDS = {
     "Ace": 11,
@@ -46,6 +47,7 @@ class Hand:
         self.surrender = False
         self.doubled = False
         self.cards = cards
+        self._value = None
 
     def __str__(self):
         h = ""
@@ -53,34 +55,40 @@ class Hand:
             h += "%s " % c
         return h
 
+    @property
     def value(self):
-        self._value = 0
-        for c in self.cards:
-            self._value += c.value
-
-        if self._value > 21 and self.aces_soft() > 0:
-            for ace in self.aces():
-                if ace.value == 11:
-                    self._value -= 10
-                    ace.value = 1
-                    if self._value <= 21:
-                        break
-
+        if self._value is None:
+            self._value = self.calculate_value()
         return self._value
 
+    def calculate_value(self):
+        value = 0
+        for c in self.cards:
+            value += c.value
+
+        if value > 21 and self.aces_soft() > 0:
+            for ace in self.aces():
+                if ace.value == 11:
+                    value -= 10
+                    ace.value = 1
+                    if value <= 21:
+                        break
+
+        return value
+
     def aces(self):
-        self._aces = []
+        aces = []
         for c in self.cards:
             if c.name == "Ace":
-                self._aces.append(c)
-        return self._aces
+                aces.append(c)
+        return aces
 
     def aces_soft(self):
-        self._aces_soft = 0
+        aces_soft = 0
         for ace in self.aces():
             if ace.value == 11:
-                self._aces_soft += 1
-        return self._aces_soft
+                aces_soft += 1
+        return aces_soft
 
     def soft(self):
         if self.aces_soft() > 0:
@@ -89,14 +97,14 @@ class Hand:
             return False
 
     def splitable(self):
-        if self.length() == 2 and self.cards[0].name == self.cards[1].name:
+        if len(self.cards) == 2 and self.cards[0].name == self.cards[1].name:
             return True
         else:
             return False
 
     def blackjack(self):
-        if not self.splithand and self.value() == 21:
-            if self.length() == 2:
+        if not self.splithand and self.value == 21:
+            if len(self.cards) == 2:
                 return True
             else:
                 return False
@@ -104,13 +112,14 @@ class Hand:
             return False
 
     def busted(self):
-        if self.value() > 21:
+        if self.value > 21:
             return True
         else:
             return False
 
     def add_card(self, card):
         self.cards.append(card)
+        self._value = None
 
     def split(self):
         self.splithand = True
@@ -147,7 +156,7 @@ class Shoe:
         self.count = 0
         self.count_history.append(self.count)
 
-        cards = []
+        cards = deque()
         for d in range(self.num_decks):
             for c in CARDS:
                 for i in range(0, 4):
@@ -162,7 +171,7 @@ class Shoe:
     def deal(self):
         if self.shoe_penetration() < self.sp:
             self.reshuffle = True
-        card = self.cards.pop()
+        card = self.cards.popleft()
 
         self.ideal_count[card.name] -= 1
 
@@ -177,5 +186,4 @@ class Shoe:
         return self.count / (self.num_decks * self.shoe_penetration())
 
     def shoe_penetration(self):
-        print(len(self.cards), self.deck_size, self.num_decks)
         return len(self.cards) / (self.deck_size * self.num_decks)

@@ -1,91 +1,12 @@
 from Containers import Hand, Shoe
-from Strategy import Strategy
+from Dealer import Dealer
+from Player import Player
 
 GAMES = 20000
 SHOE_SIZE = 6
 SHOE_PENETRATION = 0.25
 BET_SPREAD = 20
 DECK_SIZE = 52
-
-strategy_file = Strategy('data.csv')
-HARD_STRATEGY, SOFT_STRATEGY, PAIR_STRATEGY = strategy_file.get_st()
-
-class Dealer:
-    def __init__(self, hand=None):
-        self.hand = hand
-
-    def set_hand(self, new_hand):
-        self.hand = new_hand
-
-    def play(self, shoe):
-        while self.hand.value() < 17:
-            self.hit(shoe)
-
-    def hit(self, shoe):
-        c = shoe.deal()
-        self.hand.add_card(c)
-
-class Player(object):
-    def __init__(self, hand=None, dealer_hand=None):
-        self.hands = [hand]
-        self.dealer_hand = dealer_hand
-
-    def set_hands(self, new_hand, new_dealer_hand):
-        self.hands = [new_hand]
-        self.dealer_hand = new_dealer_hand
-
-    def play(self, shoe):
-        for hand in self.hands:
-            self.play_hand(hand, shoe)
-
-    def play_hand(self, hand, shoe):
-        if hand.length() < 2:
-            if hand.cards[0].name == "Ace":
-                hand.cards[0].value = 11
-            self.hit(hand, shoe)
-
-        while not hand.busted() and not hand.blackjack():
-            if hand.soft():
-                flag = SOFT_STRATEGY[hand.value()][self.dealer_hand.cards[0].name]
-            elif hand.splitable():
-                flag = PAIR_STRATEGY[hand.value()][self.dealer_hand.cards[0].name]
-            else:
-                flag = HARD_STRATEGY[hand.value()][self.dealer_hand.cards[0].name]
-
-            if flag == 'D':
-                if hand.length() == 2:
-                    # print "Double Down"
-                    hand.doubled = True
-                    self.hit(hand, shoe)
-                    break
-                else:
-                    flag = 'H'
-
-            if flag == 'Sr':
-                if hand.length() == 2:
-                    # print "Surrender"
-                    hand.surrender = True
-                    break
-                else:
-                    flag = 'H'
-
-            if flag == 'H':
-                self.hit(hand, shoe)
-
-            if flag == 'P':
-                self.split(hand, shoe)
-
-            if flag == 'S':
-                break
-
-    def hit(self, hand, shoe):
-        c = shoe.deal()
-        hand.add_card(c)
-        # print "Hitted: %s" % c
-
-    def split(self, hand, shoe):
-        self.hands.append(hand.split())
-        self.play_hand(hand, shoe)
 
 class Game:
     def __init__(self):
@@ -166,5 +87,25 @@ class Game:
         return self.bet
     
 if __name__ == "__main__":
-    game = Game()
-    game.play_round()
+    money = []
+    bets = []
+    countings = []
+    nb_hands = 0
+    
+    for g in range(GAMES):
+        game = Game()
+        while not game.shoe.reshuffle:
+            game.play_round()
+            nb_hands += 1
+
+        money.append(game.get_money())
+        bets.append(game.get_bet())
+        countings += game.shoe.count_history
+
+        print("Game %d: %s (%s bet)" % (g + 1, "{0:.2f}".format(game.get_money()), "{0:.2f}".format(game.get_bet())))
+
+    money_won = sum(money)
+    bet_volume = sum(bets)
+    print("-" * 30)
+    print("Money Won: ${:,.2f}".format(money_won))
+    print("Bet Volume: ${:,.2f}".format(bet_volume))

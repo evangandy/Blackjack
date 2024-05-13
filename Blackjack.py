@@ -2,8 +2,8 @@ from Containers import Hand, Shoe
 from Dealer import Dealer
 from Player import Player
 
-GAMES = 5000
-SHOE_SIZE = 6
+GAMES = 500000
+SHOE_SIZE = 2
 SHOE_PENETRATION = 0.25
 BET_SPREAD = 50
 DECK_SIZE = 52
@@ -109,4 +109,4 @@ if __name__ == "__main__":
     print("-" * 30)
     print("Money Won: ${:,.2f}".format(money_won))
     print("Bet Volume: ${:,.2f}".format(bet_volume))
-    print("Overall winnings: ${} (edge = {} %)".format("{0:.2f}".format(money_won), "{0:.3f}".format(100.0 * money_won/bet_volume)))
+    print("Overall winnings: ${} (EDGE = {} %)".format("{0:.2f}".format(money_won), "{0:.3f}".format(100.0 * money_won/bet_volume)))

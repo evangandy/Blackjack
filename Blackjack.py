@@ -2,21 +2,21 @@ from Containers import Hand, Shoe
 from Dealer import Dealer
 from Player import Player
 
-GAMES = 500000
-SHOE_SIZE = 2
-SHOE_PENETRATION = 0.25
-BET_SPREAD = 50
-DECK_SIZE = 52
-
 class Game:
-    def __init__(self):
+    def __init__(self, games, shoe_size, shoe_penetration, bet_spread, deck_size):
         self.player = Player()
         self.dealer = Dealer()
-        self.shoe = Shoe(SHOE_SIZE, SHOE_PENETRATION, DECK_SIZE)
+        self.shoe = Shoe(shoe_size, shoe_penetration, deck_size)
 
         self.money = 0.0
         self.bet = 0.0
         self.stake = 1.0
+
+        self.games = games
+        self.shoe_size = shoe_size
+        self.shoe_penetration = shoe_penetration
+        self.bet_spread = bet_spread
+        self.deck_size = deck_size
 
     def winnings(self, hand):
         win = 0.0
@@ -62,7 +62,7 @@ class Game:
     
     def play_round(self):
         if self.shoe.truecount() > 6:
-            self.stake = BET_SPREAD
+            self.stake = self.bet_spread
         else:
             self.stake = 1.0
 
@@ -85,28 +85,3 @@ class Game:
 
     def get_bet(self):
         return self.bet
-    
-if __name__ == "__main__":
-    money = []
-    bets = []
-    countings = []
-    nb_hands = 0
-    
-    for g in range(GAMES):
-        game = Game()
-        while not game.shoe.reshuffle:
-            game.play_round()
-            nb_hands += 1
-
-        money.append(game.get_money())
-        bets.append(game.get_bet())
-        countings += game.shoe.count_history
-
-        print("Game %d: %s (%s bet)" % (g + 1, "{0:.2f}".format(game.get_money()), "{0:.2f}".format(game.get_bet())))
-
-    money_won = sum(money)
-    bet_volume = sum(bets)
-    print("-" * 30)
-    print("Money Won: ${:,.2f}".format(money_won))
-    print("Bet Volume: ${:,.2f}".format(bet_volume))
-    print("Overall winnings: ${} (EDGE = {} %)".format("{0:.2f}".format(money_won), "{0:.3f}".format(100.0 * money_won/bet_volume)))

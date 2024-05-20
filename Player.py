@@ -1,5 +1,6 @@
 from Strategy import Strategy
 
+# Load strategy from data.csv
 strategy_file = Strategy('data.csv')
 HARD_STRATEGY, SOFT_STRATEGY, PAIR_STRATEGY = strategy_file.get_st()
 
@@ -22,6 +23,7 @@ class Player:
                 hand.cards[0].value = 11
             self.hit(hand, shoe)
 
+        # check cases
         while not hand.busted() and not hand.blackjack():
             if hand.soft():
                 flag = SOFT_STRATEGY[hand.value()][self.dealer_hand.cards[0].name]
@@ -55,9 +57,11 @@ class Player:
                 break
 
     def hit(self, hand, shoe):
+        # Deal a card from the shoe and add it to the hand
         c = shoe.deal()
         hand.add_card(c)
 
     def split(self, hand, shoe):
+        # Split the hand and add the new hand to the list of hands
         self.hands.append(hand.split())
         self.play_hand(hand, shoe)

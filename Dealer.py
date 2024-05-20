@@ -6,6 +6,7 @@ class Dealer:
         self.hand = new_hand
 
     def play(self, shoe):
+        # run until 17
         while self.hand.value() < 17:
             self.hit(shoe)
 
